@@ -8,7 +8,7 @@ Fit a Linear Model
 Fit a linear model with y as the response variable and x as the predictor(s).
 }
 \usage{
-linear(y, x, data = NULL)
+linear(y, x, data = NULL, cat = FALSE)
 }
 
 \arguments{
@@ -16,7 +16,7 @@ linear(y, x, data = NULL)
     Name of the response variable from data to be used in fitting a linear model. If data = NULL, then y will be taken to be a vector containing the response variable.
   }
   \item{x}{
-    Vector containing the names of the explanatory variables from data to be used to predict y. Variables must be numerical or interpretable as numerical. If data = NULL, then x will be taken to be a matrix of the the explanatory variables, with each column containing one variable.
+    Vector containing the names of the explanatory variables from data to be used to predict y. If data = NULL, then x will be taken to be a matrix of the the explanatory variables, with each column containing one variable.
   }
   \item{data}{
     Dataframe containing the response and explanatory variables.

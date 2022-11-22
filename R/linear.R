@@ -89,7 +89,7 @@ linear <- function(y, x, data = NULL, cat = FALSE) {
 
   ## Compute the residuals of the linear regression
   resM <- matrix(rep(Y, dim(fitsM)[2]), dim(fitsM)[1], dim(fitsM)[2]) - fitsM
-  res <- Y - fits
+  res <- as.numeric(Y - fits)
 
   ## Compute the sums of squares of the fit
   SSE <- colSums(resM^2)
@@ -99,7 +99,7 @@ linear <- function(y, x, data = NULL, cat = FALSE) {
                                              # Other rows used to compute F.Test below
 
   ## Compute the R-squared value of the fit
-  R.sq <- SSR/SST
+  R.sq <- as.numeric(SSq[1]/SSq[3])
 
   ## Compute the ANOVA Table
   F.Test <- matrix(rep(NA, 5 * dim(X)[2]), dim(X)[2], 5)

@@ -23,3 +23,164 @@ This document will outline the usage of the command `linear()` that is introduce
 
 * `data`: Specifies the dataset from which `x` and `y` should be taken from. Defaults to `NULL`.
 
+* `cat`: Logical: `TRUE` if the dataset contains categorical variables, `FALSE` if it does not. Defaults to `FALSE`.
+
+The `linear()` command takes these arguments and uses them to fit a linear model which predicts `y` given the variables `x`. After the model is fit, the `linear()` command returns several things:
+
+* `beta`: Vector containing the list of fitted parameter values from the linear model fit.
+
+* `fits`: Vector containing the fitted values of `y` from the regression model.
+
+* `res`: Vector containing the residuals of the fitted regression model.
+
+* `R.sq`: The R-Squared value of the linear model fit.
+
+* `F.Test`: The ANOVA table for the linear model fit. Includes a row for each variable in the fitted model. Computes the Degrees of Freedom, the Sum of Squares, Mean Square, F Test statistic, and p-value for each variable in the fitted linear model.
+
+* `model`: Matrix of the variables used in the model. First column corresponds to the response variable, `y`, followed by the explanatory variables, `x`, in the order that they were specified in the function.
+
+## Getting Started: Installing the Package
+
+The package can be installed using the `install_github` command in the `devtools` package.
+
+```{r}
+library(devtools)
+install_github("bensmyth0/bensmyth.biostat625.HW3")
+
+library(bensmyth.biostat625.HW3)
+```
+
+## Example 1: Simple Linear Regression
+
+Now that we have seen the inputs to be given to the model and the outputs that will be received, we can begin running a linear regression model using test data. The dataset we will be using for this example is `iris`, which is included as a dataset in base R. Let us begin by taking a look at the data.
+
+```{r}
+head(iris)
+```
+
+The `iris` dataset gives us 4 numerical variables and one categorical variable to work with. We will begin with a simple linear regression model in order to see some of the output that is given by the `linear()` command. Suppose it is of interest to fit a linear model predicting `Sepal.Length` using `Sepal.Width` as a sole predictor. Then we will want to input `y = "Sepal.Length"` and `x = "Sepal.Width"` into the `linear()` function, as well as instruct it to use the dataset `data = iris`. In this simple model, there are no categorical variables, so leaving `cat = FALSE` is necessary.
+
+```{r}
+model.simple <- linear(y = "Sepal.Length", x = "Sepal.Width", data = iris)
+```
+
+Now that we have fit our model, we can take a look at the output contained in our simple model.
+
+```{r}
+model.simple$beta
+```
+
+The `beta` for the model fit tells us that we have an intercept estimate of $\hat{\beta_0} = 6.526$ and a slope estimate of $\hat{\beta_1} = -0.223$. This gives us the fitted model $Sepal.Length = 6.526 - 0.223 Sepal.Width$ as our linear model fit for the data. 
+
+```{r}
+head(model.simple$fits)
+head(model.simple$res)
+```
+
+Here, we can see the first few terms of the fitted values and the residuals. They are not displayed in full due to their length (150), which is simply unnecessary. 
+
+```{r}
+model.simple$SSq
+```
+
+`SSq` outputs the sums of squares of the fitted model, including the SSE, SSR, and SST. Overall, it seems here that our SSR is very small relative to the SSE, which indicates that the fit of the linear model is not very good. We can check this be observing our next output from the linear fit, `R.sq`.
+
+```{r}
+model.simple$R.sq
+```
+
+As expected, $R^2$ value is very small, indicating a very poor fit. We can further see the significance of the model fit through `F.Test`.
+
+```{r}
+model.simple$F.Test
+```
+
+`F.Test` returns an ANOVA table, which includes:
+
+* `DF`: The degrees of freedom for each predictor `x` included in the model, as well as the residuals (error)
+
+* `Sum Sq`: The sum of squares for each term in the model, as well as the residuals. Note that in the simple model with one predictor, they are exactly equal to the SSR and SSE.
+
+* `Mean Sq`: The mean square for each term in the model, given by $MeanSq = \frac{SumSq}{DF}$.
+
+* `F Value`: The F test statistic for significance for each term in the model. 
+
+* `p-value`: The p-value that corresponds to the test statistic `F Value`, used to test the hypothesis $H_0:\beta_1 = 0$
+
+In this case, we can further note the high p-value and come to the same conclusion as above that the model is a poor fit.
+
+```{r}
+head(model.simple$model)
+```
+
+`model` simply returns the variables used to fit the model.
+
+## Example 2: Multiple Linear Regression (w/ Categorical Variables)
+
+Suppose we now wish to predict `Sepal.Length` using all of the other variables in the dataset, which are `Sepal.Width`, `Petal.Length`, `Petal.Width`, and `Species`. Now, the linear function will expect `x` to be given as a vector containing the names of the categorical variables, i.e. `x = c("Sepal.Width", "Petal.Length", "Petal.Width", "Species")`. Note that `Species` here is categorical, and so we will want to set `cat = TRUE` when inputting the function. As an example, let us see what happens when we do not do this.
+
+```{r, error = TRUE}
+model.multiple <- linear(y = "Sepal.Length", x = c("Sepal.Width", "Petal.Length", "Petal.Width", "Species"), data = iris)
+```
+
+As we can see, an error was thrown - specifically that the model is expecting numeric arguments. This is because we did not tell the `linear()` command that we are expecting categorical variables, and so it did not go through the process of creating dummy variables for this column. We can fix this error by correctly indicating to the function that we have included categorical variables and that we will need this column to be made into a dummy varaible.
+
+```{r}
+model.multiple <- linear(y = "Sepal.Length", x = c("Sepal.Width", "Petal.Length", "Petal.Width", "Species"), data = iris, cat = TRUE)
+```
+
+The model seems to have been able to fit just fine. We can now take a look at the fitted parameter estimates to see how the model handled the additional numerical variables and the categorical variable.
+
+```{r}
+model.multiple$beta
+```
+
+As we can see, there are now a total of 6 fitted parameter estimates: one for the intercept, 3 slopes for numerical variables, and the categorical variable was coded as two indicator variables. `linear()` takes a similar approach to `lm()` in that it removes one category as the reference - in this case, the species "setosa" was removed and is considered the reference category for the linear fit.
+
+The fitted values and the residuals are more or less what we expect:
+
+```{r}
+head(model.multiple$fits)
+head(model.multiple$res)
+```
+
+We can again check the `SSq` and `R.sq` to get an indication of the model fit.
+
+```{r}
+model.multiple$SSq
+model.multiple$R.sq
+```
+
+Lastly, let us look at the `F.Test` returned with the model
+
+```{r}
+model.multiple$F.Test
+```
+
+The `F.Test` now includes several rows, one for each regression parameter, including the two that were created as dummy variables for the categorical variable `Species`. We can examine the p-values for each variable to determine how significant each parameter is in the presence of each other parameter in the model.
+
+## Example 3: Including Interaction Terms
+
+Unfortunately, `linear()` does not have built in support for interaction terms. However, they are not hard to manually code, and the regression fit will be identical to that produced by the base linear model command, `lm()`. Suppose we wanted to include an interaction between `Petal.Length` and `Petal.Width`, which we will simply call `Interaction` for this example. Then we could do so by creating a new column in the dataset, named `Interaction`, which has the value `Petal.Length * Petal.Width`. This is accomplished below.
+
+```{r}
+iris2 <- iris # Copy the dataset as to not write over a base R dataset
+iris2$Interaction <- iris2$Petal.Length * iris2$Petal.Width
+head(iris2)
+```
+
+We now have our interaction term. Now, we simply want to give this new term `Interaction` to our `linear()` command as an additional variable.
+
+```{r}
+model.interaction <- linear(y = "Sepal.Length", x = c("Sepal.Width", "Petal.Length", "Petal.Width", "Species", "Interaction"), 
+                            data = iris2, cat = TRUE)
+model.interaction$beta
+```
+
+We see now that, in addition to the variables previously included in the model, we have a new term `Interaction` for the interaction that we coded between `Petal.Length` and `Petal.Width`. We can look at the result of the `F.Test` to see how significant this interaction is in the model.
+
+```{r}
+model.interaction$F.Test
+```
+
+From the `F.Test`, we can see that we have an additional row for our interaction term, and thus we can conduct hypothesis tests on the significance of this interaction term if we wish to do so. 
