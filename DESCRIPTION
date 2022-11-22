@@ -8,3 +8,7 @@ Description: Implements the linear() command, which fits a linear model.
 Imports: fastDummies
 Encoding: UTF-8
 LazyData: true
+Suggests: 
+    covr,
+    testthat (>= 3.0.0)
+Config/testthat/edition: 3
