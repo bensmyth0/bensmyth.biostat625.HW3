@@ -9,7 +9,7 @@ Using the package `devtools`, the package may be installed directly from github 
 
 ```{r}
 install.packages("devtools")
-devtools::install_github("bensmyth0/bensmyth.625HW3")
+devtools::install_github("bensmyth0/bensmyth.biostat625.HW3")
 ```
 ## Usage
 ```{r}
