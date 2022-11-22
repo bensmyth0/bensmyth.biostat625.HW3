@@ -26,6 +26,8 @@
 #' If it is desired to fit a model with an interaction, it must be coded as a separate variable
 #' and then given to `linear()` as an additional variable within the `x` argument.
 #'
+#' @import fastDummies
+#'
 #' @export
 
 linear <- function(y, x, data = NULL, cat = FALSE) {
