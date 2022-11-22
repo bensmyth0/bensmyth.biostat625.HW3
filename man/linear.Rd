@@ -5,7 +5,7 @@
 Fit a Linear Model
 }
 \description{
-Fit a linear model with y as the response variable and x as the predictor(s). 
+Fit a linear model with y as the response variable and x as the predictor(s).
 }
 \usage{
 linear(y, x, data = NULL)
@@ -19,7 +19,7 @@ linear(y, x, data = NULL)
     Vector containing the names of the explanatory variables from data to be used to predict y. Variables must be numerical or interpretable as numerical. If data = NULL, then x will be taken to be a matrix of the the explanatory variables, with each column containing one variable.
   }
   \item{data}{
-    Dataframe containing the response and explanatory variables. 
+    Dataframe containing the response and explanatory variables.
   }
 }
 \details{
@@ -75,16 +75,19 @@ mod.2$F.Test
 ## Simple Linear Regression using the swiss dataset (built into R)
 ## Predicting Infant.Mortality using Fertility as a sole predictor
 mod.3 <- linear(y = "Infant.Mortality", x = "Fertility", data = swiss)
+mod.3$beta
 
 ## Include Agriculture and Education as additional predictor variables
 mod.4 <- linear(y = "Infant.Mortality", x = c("Fertility", "Agriculture", "Education"), data = swiss)
+mod.4$beta
 
 ## Interaction terms are not natively supported by the linear() function.
 ## However, they may be passed to the linear() function as an additional variable from the dataset.
 swiss.2 <- swiss  # Copy the dataset from Base R
 swiss.2$Interaction <- swiss.2$Agriculture * swiss.2$Education  # Create the interaction variable
 
-mod.5 <- linear(y = "Infant.Mortality", x = c("Fertility", "Agriculture", "Education", "Interaction"), data = swiss)
+mod.5 <- linear(y = "Infant.Mortality", x = c("Fertility", "Agriculture", "Education", "Interaction"), data = swiss.2)
+mod.5$beta
 
 }
 % Add one or more standard keywords, see file 'KEYWORDS' in the
