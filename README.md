@@ -8,6 +8,21 @@ Submission for BIOSTAT 625 Homework 3
 This package seeks to reimplement the command for linear models in base R (lm) as a new command linear.
 * linear() runs a linear regression model given the specified response variable and predictor variables.
 
+linear() takes the following arguments:
+* y - Name of the response variable from data to be used in fitting a linear model. If data = NULL, then y will be taken to be a vector containing the response variable.
+* x - Vector containing the names of the explanatory variables from data to be used to predict y. If data = NULL, then x will be taken to be a matrix of the the explanatory variables, with each column containing one variable.
+* data - Dataframe containing the response and explanatory variables.
+* cat - Logical: TRUE if the specified data contain categorical variables, FALSE if they do not. Defaults to FALSE.
+
+linear() returns the following values:
+* beta - Vector containing the list of fitted parameter values from the linear model fit.
+* fits - Vector containing the fitted values of y from the regression model.
+* res - Vector containing the residuals of the fitted regression model.
+* SSq - The Sums of Squares of the linear model fit. Returns SSE (Sum of Squares Error), SSR (Sum of Squares Regression), and SST (Sum of Squares Total).
+* R.sq - The R-Squared value of the linear model fit.
+* F.Test - The ANOVA table for the linear model fit. Includes a row for each variable in the fitted model. Computes the Degrees of Freedom, the Sum of Squares, Mean Square, F Test statistic, and p-value for each variable in the fitted linear model.
+* model - Matrix of the variables used in the model. First column corresponds to the response variable, y, followed by the explanatory variables, x, in the order that they were specified in the function.
+
 ## Installation
 Using the package `devtools`, the package may be installed directly from github in the following manner:
 
