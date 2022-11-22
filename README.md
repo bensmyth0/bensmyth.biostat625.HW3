@@ -1,6 +1,6 @@
 # bensmyth.625HW3
 <!-- badges: start -->
-[![R-CMD-check](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml)
+  [![R-CMD-check](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml)
   [![Codecov test coverage](https://codecov.io/gh/bensmyth0/bensmyth.biostat625.HW3/branch/master/graph/badge.svg)](https://app.codecov.io/gh/bensmyth0/bensmyth.biostat625.HW3?branch=master)
   <!-- badges: end -->
 Submission for BIOSTAT 625 Homework 3
