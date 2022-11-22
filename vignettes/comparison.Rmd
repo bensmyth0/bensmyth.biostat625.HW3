@@ -1,0 +1,230 @@
+---
+title: "Comparison to lm() and aov()"
+description: >
+  A comparison of the efficiency and correctness of the results of the linear() function and the lm() function in base R.
+output: html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+```{r, echo = FALSE}
+linear <- function(y, x, data = NULL) {
+  ## Returns the values of the regression coefficients for multiple linear regression
+  ## y = name of the response variable in data
+  ##     If data = NULL, then y will be taken as the vector of the response
+  ## x = Vector of names of explanatory variable columns in data
+  ##     If data = NULL, then x will be taken as the columns themselves
+  
+  #### LIMITATIONS
+  ## No interactions          - have to code yourself
+  ## No categorical variables - have to code yourself
+  
+  ## Differentiate between cases where data are specified vs not specified
+  if (is.null(data) == TRUE) {
+    X <- x
+    Y <- y
+  } else if (is.null(data) == FALSE) {
+    data <- na.omit(data)
+    X <- data[, x]
+    Y <- data[, y]
+  }
+  Y <- as.matrix(Y)
+  ## Save the model to be returned at the end
+  model <- cbind(Y, X)
+  if (is.null(data) == TRUE) {
+    colnames(model)[1] <- "y"
+  }
+  
+  ## Create the design matrix based on our explanatory variables
+  ## Differentiate between Simple Linear Regression and Multiple Linear Regression
+  if (is.null(dim(X)) == TRUE) {
+    X <- as.matrix(cbind(rep(1, length(X)), X))
+  } else {
+    X <- as.matrix(cbind(rep(1, nrow(X)), X))
+  }
+  
+  ## Compute the regression parameters
+  ## This will compute the regression parameters for the specified model as well
+  ## as nested models in order to determine Sums of Squares
+  betaM <- matrix(rep(0, (dim(X)[2] -1) * dim(X)[2]), dim(X)[2], dim(X)[2]-1)
+  
+  for (i in 1:(dim(X)[2]-1)) {
+    betaM[1:(i+1), i] <- solve(t(X[, 1:(i+1)]) %*% X[, 1:(i+1)]) %*% t(X[, 1:(i+1)]) %*% Y
+  }
+  beta <- as.matrix(betaM[, dim(betaM)[2]])
+  if (is.null(data) == FALSE) {
+    rownames(beta) <- c("Intercept", x)
+  } else {
+    rownames(beta) <- c("Intercept", paste("x", as.character(1:(dim(beta)[1]-1)), sep = ""))
+  }
+  ## Compute the fitted values of the linear regression
+  fitsM <- matrix(rep(0, (dim(X)[2]-1) * dim(X)[1]), dim(X)[1], dim(X)[2]-1)
+  for (i in 1:(dim(X)[2]-1)) {
+    fitsM[, i] <- X[, 1:(i+1)] %*% betaM[1:(i+1), i]
+  }
+  fits <- fitsM[, dim(fitsM)[2]]
+  
+  ## Compute the residuals of the linear regression
+  resM <- matrix(rep(Y, dim(fitsM)[2]), dim(fitsM)[1], dim(fitsM)[2]) - fitsM
+  res <- Y - fits
+  
+  ## Compute the sums of squares of the fit
+  SSE <- colSums(resM^2)
+  SSR <- colSums((fitsM - mean(Y))^2)
+  SST <- SSR + SSE
+  SSq <- cbind(SSR, SSE, SST)[length(SSE), ]
+  
+  ## Compute the R-squared value of the fit
+  R.sq <- SSR/SST
+  
+  #### Compute the ANOVA Table
+  F.Test <- matrix(rep(NA, 5 * dim(X)[2]), dim(X)[2], 5)
+  
+  ## Determine the DF column
+  F.Test[1:(dim(F.Test)[1]-1), 1] <- 1
+  F.Test[dim(F.Test)[1], 1] <- dim(X)[1] - dim(F.Test)[1]
+  
+  ## Determine the Sum Sq Column
+  F.Test[1, 2] <- SSR[1]
+  if (dim(F.Test)[1] > 2) {
+    F.Test[2:(dim(F.Test)[1]-1), 2] <- diff(SSR)
+  }
+  F.Test[dim(F.Test)[1], 2] <- SSE[length(SSE)]
+  
+  ## Determine the Mean Sq Column
+  F.Test[, 3] <- F.Test[, 2] / F.Test[, 1]
+  
+  ## Return the F Test Statistics
+  F.Test[1:(dim(F.Test)[1]-1), 4] <- F.Test[1:(dim(F.Test)[1]-1), 3] / F.Test[dim(F.Test)[1], 3]
+  
+  ## Return the p-values for the F test statistics
+  F.Test[1:(dim(F.Test)[1]-1), 5] <- 1- pf(F.Test[1:(dim(F.Test)[1]-1), 4], 1, F.Test[dim(F.Test)[1], 1])
+  
+  ## Name all rows/cols
+  if (is.null(data) == TRUE) {
+    rownames(F.Test) <- c(paste("x", as.character(1:(dim(F.Test)[1]-1)), sep = ""), "Residuals")
+  } else if (is.null(data) == FALSE) {
+    rownames(F.Test) <- c(x, "Residuals")
+  }
+  colnames(F.Test) <- c("DF", "Sum Sq", "Mean Sq", "F Value", "p-value")
+  
+  ## Return all of the values computed above
+  return(list(beta = t(beta), 
+              fits = fits, 
+              res = res,
+              SSq = SSq,
+              R.sq = R.sq,
+              F.Test = F.Test,
+              model = model))
+}
+
+```
+
+## Introduction
+
+The purpose of this R package is to re-implement the linear model command as a new function, `linear()`. In this document, we will be examining both the correctness and efficiency of this new function as compared to the functions `lm()` and `aov()`, which are implemented in base R to run a linear model and compute and ANOVA table, respectively.
+
+## Correctness
+
+We will begin by examining the correctness of the model parameters returned by `linear()`. We will be using the built-in dataset swiss to do these comparisons.
+
+```{r}
+head(swiss)
+```
+
+To begin, we will compare the fitted parameter values of a simple linear regression predicting Infant Mortality with Fertility.
+
+```{r}
+fit.1 <- lm(Infant.Mortality ~ Fertility, data = swiss)
+myFit.1 <- linear(y = "Infant.Mortality", x = "Fertility", data = swiss)
+
+all.equal(as.numeric(fit.1$coefficients), as.numeric(myFit.1$beta))
+```
+
+We can further compare the residuals and the fitted values to see that they match.
+
+```{r}
+all.equal(as.numeric(fit.1$residuals), as.numeric(myFit.1$res))
+all.equal(as.numeric(fit.1$fitted.values), as.numeric(myFit.1$fits))
+```
+
+This example was quite a simple one, so let us now consider adding Agriculture and Education as predictor variables and check that the two functions still give equivalent results.
+
+```{r}
+fit.2 <- lm(Infant.Mortality ~ Fertility + Agriculture + Education, data = swiss)
+myFit.2 <- linear(y = "Infant.Mortality", c("Fertility", "Agriculture", "Education"), data = swiss)
+
+all.equal(as.numeric(fit.2$coefficients), as.numeric(myFit.2$beta))
+all.equal(as.numeric(fit.2$residuals), as.numeric(myFit.2$res))
+all.equal(as.numeric(fit.2$fitted.values), as.numeric(myFit.2$fits))
+```
+
+Lastly, let us consider a model with an interaction term between Agriculture and Education. While `lm()` has built in support for interaction terms, linear does not, so we will need to create our own interaction variable for use with `linear()`.
+
+```{r}
+swiss.2 <- swiss
+swiss.2$Interaction <- swiss.2$Agriculture * swiss.2$Education
+
+fit.3 <- lm(Infant.Mortality ~ Fertility + Agriculture * Education, data = swiss)
+myFit.3 <- linear(y = "Infant.Mortality", x = c("Fertility", "Agriculture", "Education", "Interaction"), data = swiss.2)
+
+all.equal(as.numeric(fit.3$coefficients), as.numeric(myFit.3$beta))
+all.equal(as.numeric(fit.3$residuals), as.numeric(myFit.3$res))
+all.equal(as.numeric(fit.3$fitted.values), as.numeric(myFit.3$fits))
+```
+
+In addition, we wish to compare the ANOVA tables and F Tests produced by both the `linear()` command and the `aov()` command. We will not be able to use `all.equal()` to compare these, due to the way the `aov()` command stores its results, but we may still produce each table and compare. 
+
+```{r}
+aov.1 <- aov(Infant.Mortality ~ Fertility, data = swiss)
+aov.2 <- aov(Infant.Mortality ~ Fertility + Agriculture + Education, data = swiss)
+aov.3 <- aov(Infant.Mortality ~ Fertility + Agriculture * Education, data = swiss)
+
+summary(aov.1)
+myFit.1$F.Test
+```
+
+As we can see, the results produced by both tables are equivalent with the exception of rounding, wherein the `aov()` command prefers shorter and more concise results. Nevertheless, the results agree with each other.
+
+We can confirm that these results agree with the other two fitted models as well.
+
+```{r}
+summary(aov.2)
+myFit.2$F.Test
+
+summary(aov.3)
+myFit.3$F.Test
+```
+
+Overall, we again see that the results produced by the `aov()` command are rounded off to be shorter and more concise, but they once again identical within the rounding error, indicating that the results once again agree with each other.
+
+## Efficiency
+
+We can additionally use the `bench` package to determine the efficiency of each of the commands. We will begin with testing the simple linear model for both the `lm()` and the `linear()` commands.
+
+```{r}
+library(bench)
+set.seed(123456)
+
+## Timing for simple linear regression
+bench::mark(lm(Infant.Mortality ~ Fertility, data = swiss))[, 2:3]
+bench::mark(linear(y = "Infant.Mortality", x = "Fertility", data = swiss))[, 2:3]
+```
+
+For the simple linear model, the `linear()` command outperforms `lm()` in both minimum execution time and median execution time. We will similarly compare using the multiple linear regression model and the multiple linear regression model with interaction.
+
+```{r}
+## Timing for multiple linear regression
+bench::mark(lm(Infant.Mortality ~ Fertility + Agriculture + Education, data = swiss))[, 2:3]
+bench::mark(linear(y = "Infant.Mortality", c("Fertility", "Agriculture", "Education"), data = swiss))[, 2:3]
+
+## Timing for multiple linear regression with interaction
+bench::mark(lm(Infant.Mortality ~ Fertility + Agriculture * Education, data = swiss))[, 2:3]
+bench::mark(linear(y = "Infant.Mortality", x = c("Fertility", "Agriculture", "Education", "Interaction"), data = swiss.2))[, 2:3]
+```
+
+As the model becomes more and more complex, `lm()` begins to pull ahead in efficiency, suggesting that while `linear()` is better for simple linear regression models, `lm()` may be superior for larger models. It is worth noting, however, that these differences are not overly large, and that `linear()` is still quite efficient, just a little less so than `lm()` for more complex models.

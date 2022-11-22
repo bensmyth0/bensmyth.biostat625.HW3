@@ -1,0 +1,9 @@
+Package: bensmyth.biostat625.HW3
+Type: Package
+Title: bensmyth.biostat625.HW3
+Version: 0.1.0
+Author: Benjamin Smith
+Maintainer: Benjamin Smith <bensmyth@umich.edu>
+Description: Implements the linear() command, which fits a linear model.
+Encoding: UTF-8
+LazyData: true

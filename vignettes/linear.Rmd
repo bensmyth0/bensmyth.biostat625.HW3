@@ -1,0 +1,25 @@
+---
+title: "Introduction to linear()"
+description: >
+  An introduction to the command linear().
+output: html_vignette
+vignette: >
+  %\VignetteEngine{knitr::rmarkdown}
+---
+
+```{r setup, include=FALSE}
+knitr::opts_chunk$set(echo = TRUE)
+```
+
+## Introduction
+
+This document will outline the usage of the command `linear()` that is introduced in this package. 
+
+`linear()` takes a total of three arguments: `y`, `x`, and `data`.
+
+* `y`: The name of the response variable from `data`. If `data = NULL`, then it is instead taken to be the vector of the response variable.
+
+* `x`: A vector including the names of the explanatory variables to use in the linear model fit. If `data = NULL`, then it is instead taken to be a matrix of the explanatory variables, with each column containing a different variable.
+
+* `data`: Specifies the dataset from which `x` and `y` should be taken from. Defaults to `NULL`.
+
