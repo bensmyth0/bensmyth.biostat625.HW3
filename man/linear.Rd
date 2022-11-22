@@ -21,9 +21,9 @@ linear(y, x, data = NULL)
   \item{data}{
     Dataframe containing the response and explanatory variables.
   }
-}
-\details{
-  All arguments must be numerical. If you wish to run a linear regression model with categorical variables, you will need to manually create the dummy variables yourself and give them to the function as seperate variables.
+  \item{cat}{
+    Logical: TRUE if the specified data contain categorical variables, FALSE if they do not. Defaults to FALSE.
+  }
 }
 \value{
   \item{beta}{

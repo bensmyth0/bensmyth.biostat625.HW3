@@ -9,6 +9,7 @@
 #' `x` = Names of the explanatory variables from the specified dataset
 #' If `data = NULL`, then x will be taken as a matrix with one variable per column
 #' `data` =  Dataframe in which `y` and `x` are variables. Defaults to `data = NULL`
+#' `cat` = Logical: T`TRUE` if data contains categorical variables, `FALSE` otherwise.
 #'
 #' @return
 #' `beta` = Vector of fitted parameter values from the model fit.
@@ -21,13 +22,13 @@
 #' followed by the explanatory variables, `x`, in the order that they were specified in the function.
 #'
 #' @section Limitations:
-#' `linear()` does not have built in support for interaction terms or categorical variables.
-#' If it is desired to fit a model with either of these, they must be coded as separate variables
-#' and then given to `linear()` as separate variables within the `x` argument.
+#' `linear()` does not have built in support for interaction terms.
+#' If it is desired to fit a model with an interaction, it must be coded as a separate variable
+#' and then given to `linear()` as an additional variable within the `x` argument.
 #'
 #' @export
 
-linear <- function(y, x, data = NULL) {
+linear <- function(y, x, data = NULL, cat = FALSE) {
 
   ## Differentiate between cases where data are specified vs not specified
   if (is.null(data) == TRUE) {
@@ -40,6 +41,12 @@ linear <- function(y, x, data = NULL) {
   }
 
   Y <- as.matrix(Y)
+
+  ## Include categorical variables in the model if specified
+  if (cat == TRUE) {
+    X <- fastDummies::dummy_cols(X, remove_first_dummy = TRUE, remove_selected_columns = TRUE)
+    x <- colnames(X)
+  }
 
   ## Save the model to be returned at the end
   model <- cbind(Y, X)
