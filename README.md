@@ -1,3 +1,7 @@
+<!-- badges: start -->
+[![R-CMD-check](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml/badge.svg)](https://github.com/bensmyth0/bensmyth.biostat625.HW3/actions/workflows/R-CMD-check.yaml)
+<!-- badges: end -->
+
 # bensmyth.625HW3
 Submission for BIOSTAT 625 Homework 3
 
